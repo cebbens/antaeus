@@ -7,6 +7,9 @@ import org.quartz.impl.StdSchedulerFactory
 import java.time.LocalTime
 
 private val logger = KotlinLogging.logger {}
+private const val DEFAULT_CRON_EXP = "0 0 0 1 * ?"
+private const val TRIGGER_NAME: String = "billingTrigger"
+private const val JOB_NAME: String = "billingJob"
 
 /**
  * Responsible of billing by delegating to [PaymentProvider].
@@ -15,23 +18,22 @@ private val logger = KotlinLogging.logger {}
  * @param invoiceService Invoice service.
  * @param cron Optional CRON expression (defaults to "0 0 0 1 * ?": every first of the month at midnight).
  */
-class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceService, cron: String? = "0 0 0 1 * ?") {
+class BillingService(val paymentProvider: PaymentProvider, val invoiceService: InvoiceService, private val cron: String? = DEFAULT_CRON_EXP) {
 
     // Create/retrieve scheduler
     private val scheduler: Scheduler = StdSchedulerFactory().scheduler
     private val job: JobDetail
     private val trigger: Trigger
-    private val triggerName: String = "billingTrigger"
 
     init {
         // Create Job
-        job = JobBuilder.newJob(BillingJob::class.java).withIdentity("billingJob").build()
+        job = JobBuilder.newJob(BillingJob::class.java).withIdentity(JOB_NAME).build()
 
         // Create Trigger
         trigger = TriggerBuilder.newTrigger()
-                .withIdentity(triggerName)
+                .withIdentity(TRIGGER_NAME)
                 // CRON Schedule based on received cron expression
-                .withSchedule(CronScheduleBuilder.cronSchedule(cron))
+                .withSchedule(CronScheduleBuilder.cronSchedule(cron ?: DEFAULT_CRON_EXP))
                 // Pass dependencies to the BillingJob instance
                 .usingJobData(JobDataMap(mapOf("invoiceService" to invoiceService, "paymentProvider" to paymentProvider)))
                 // Associate Job to Trigger
@@ -48,7 +50,7 @@ class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceSe
                     scheduler.start()
                 }
                 // Re-schedule job if scheduler already started
-                else -> scheduler.rescheduleJob(TriggerKey.triggerKey(triggerName), trigger)
+                else -> scheduler.rescheduleJob(TriggerKey.triggerKey(TRIGGER_NAME), trigger)
             }
             return true
         }

@@ -1,22 +1,23 @@
-/*
-    Configures the rest app along with basic exception handling and URL endpoints.
- */
-
 package io.pleo.antaeus.rest
 
 import io.javalin.Javalin
-import io.javalin.apibuilder.ApiBuilder.get
-import io.javalin.apibuilder.ApiBuilder.path
+import io.javalin.apibuilder.ApiBuilder.*
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
+import io.pleo.antaeus.core.external.PaymentProvider
+import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import mu.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
-class AntaeusRest (
-    private val invoiceService: InvoiceService,
-    private val customerService: CustomerService
+/**
+ * Configures the rest app along with basic exception handling and URL endpoints.
+ */
+class AntaeusRest(
+        private val invoiceService: InvoiceService,
+        private val customerService: CustomerService,
+        private val paymentProvider: PaymentProvider
 ) : Runnable {
 
     override fun run() {
@@ -72,6 +73,16 @@ class AntaeusRest (
                        // URL: /rest/v1/customers/{:id}
                        get(":id") {
                            it.json(customerService.fetch(it.pathParam("id").toInt()))
+                       }
+                   }
+
+                   path("billing") {
+                       // URL: /rest/v1/billing[?&cron={cron_exp}]
+                       post {
+                           val result = BillingService(paymentProvider, invoiceService, it.queryParam("cron")).bill()
+
+                           if (result) it.status(201).json(mapOf("status" to "executed"))
+                           else it.status(500).json(mapOf("status" to "error"))
                        }
                    }
                }

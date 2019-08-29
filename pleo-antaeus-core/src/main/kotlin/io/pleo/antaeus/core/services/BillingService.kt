@@ -8,8 +8,14 @@ import java.time.LocalTime
 
 private val logger = KotlinLogging.logger {}
 
-// TODO: change cron expression to "0 0 0 1 * ?"
-class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceService, cron: String? = "0/5 * * * * ?") {
+/**
+ * Responsible of billing by delegating to [PaymentProvider].
+ *
+ * @param paymentProvider External service responsible of charging invoices.
+ * @param invoiceService Invoice service.
+ * @param cron Optional CRON expression (defaults to "0 0 0 1 * ?": every first of the month at midnight).
+ */
+class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceService, cron: String? = "0 0 0 1 * ?") {
 
     // Create/retrieve scheduler
     private val scheduler: Scheduler = StdSchedulerFactory().scheduler
@@ -24,7 +30,7 @@ class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceSe
         // Create Trigger
         trigger = TriggerBuilder.newTrigger()
                 .withIdentity(triggerName)
-                // Schedule for every first of the month at midnight
+                // CRON Schedule based on received cron expression
                 .withSchedule(CronScheduleBuilder.cronSchedule(cron))
                 // Pass dependencies to the BillingJob instance
                 .usingJobData(JobDataMap(mapOf("invoiceService" to invoiceService, "paymentProvider" to paymentProvider)))
@@ -46,8 +52,8 @@ class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceSe
             }
             return true
         }
-        catch (t: Throwable) {
-            logger.error(t) { "Scheduling error!" }
+        catch (e: Exception) {
+            logger.error(e) { "Scheduling ERROR!" }
             return false
         }
     }
@@ -61,8 +67,14 @@ class BillingService(paymentProvider: PaymentProvider, invoiceService: InvoiceSe
             val invoiceService = context.mergedJobDataMap["invoiceService"] as InvoiceService
             val paymentProvider = context.mergedJobDataMap["paymentProvider"] as PaymentProvider
 
-            // Charge any pending invoice
-            invoiceService.fetchAllPending().forEach { paymentProvider.charge(it) }
+            try {
+                // Charge any pending invoice
+                invoiceService.fetchAllPending().forEach { paymentProvider.charge(it) }
+            }
+            catch (e: Exception) {
+                // Create a JobExecutionException with the given underlying exception, and 're-fire immediately'
+                throw JobExecutionException(e, true)
+            }
         }
     }
 }

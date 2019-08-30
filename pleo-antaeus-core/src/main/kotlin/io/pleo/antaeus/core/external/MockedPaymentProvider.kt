@@ -1,9 +1,9 @@
 package io.pleo.antaeus.core.external
 
 import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
-import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.NetworkException
-import io.pleo.antaeus.data.AntaeusDal
+import io.pleo.antaeus.core.services.CustomerService
+import io.pleo.antaeus.core.services.InvoiceService
 import io.pleo.antaeus.models.Customer
 import io.pleo.antaeus.models.Invoice
 import io.pleo.antaeus.models.InvoiceStatus
@@ -15,13 +15,16 @@ private val logger = KotlinLogging.logger {}
 /**
  *  This is the payment provider. It is a "mock" of an external service that you can pretend runs on another system.
  */
-class MockedPaymentProvider(private val dal: AntaeusDal) : PaymentProvider {
+class MockedPaymentProvider(
+        private val invoiceService: InvoiceService,
+        private val customerService: CustomerService)
+    : PaymentProvider {
 
     override fun charge(invoice: Invoice): Boolean {
         logger.info("Charging invoice #${invoice.id}...")
 
         // Fetch invoice customer, and fail if not found
-        val customer: Customer = dal.fetchCustomer(invoice.customerId) ?: throw CustomerNotFoundException(invoice.customerId)
+        val customer: Customer = customerService.fetch(invoice.customerId)
 
         // Verify that the invoice currency matches the customer account currency, and fail otherwise
         if (invoice.amount.currency != customer.currency) {
@@ -38,7 +41,7 @@ class MockedPaymentProvider(private val dal: AntaeusDal) : PaymentProvider {
 
         if (result) {
             // Update invoice status to paid
-            dal.updateInvoiceStatus(invoice.id, InvoiceStatus.PAID)
+            invoiceService.updateStatus(invoice.id, InvoiceStatus.PAID)
             logger.info("OK! :)")
         }
         else {

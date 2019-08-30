@@ -45,12 +45,14 @@ fun main() {
     // Insert example data in the database.
     setupInitialData(dal = dal)
 
-    // Get third parties
-    val paymentProvider = MockedPaymentProvider(dal = dal)
-
     // Create core services
     val invoiceService = InvoiceService(dal = dal)
     val customerService = CustomerService(dal = dal)
+
+    // Integrate with third party service
+    val paymentProvider = MockedPaymentProvider(customerService = customerService, invoiceService = invoiceService)
+
+    // Create billing service
     val billingService = BillingService(paymentProvider = paymentProvider, invoiceService = invoiceService)
 
     // Create REST web service

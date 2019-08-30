@@ -12,6 +12,9 @@ import kotlin.random.Random
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ *  This is the payment provider. It is a "mock" of an external service that you can pretend runs on another system.
+ */
 class MockedPaymentProvider(private val dal: AntaeusDal) : PaymentProvider {
 
     override fun charge(invoice: Invoice): Boolean {
@@ -39,7 +42,7 @@ class MockedPaymentProvider(private val dal: AntaeusDal) : PaymentProvider {
             logger.info("OK! :)")
         }
         else {
-            logger.info("ERROR! :(")
+            logger.info("NOT charged! :(")
         }
 
         return result

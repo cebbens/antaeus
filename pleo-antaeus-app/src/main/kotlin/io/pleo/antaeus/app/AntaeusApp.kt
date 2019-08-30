@@ -5,6 +5,7 @@ package io.pleo.antaeus.app
 import io.pleo.antaeus.core.external.MockedPaymentProvider
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
+import io.pleo.antaeus.core.services.billing.BillingService
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
@@ -50,12 +51,9 @@ fun main() {
     // Create core services
     val invoiceService = InvoiceService(dal = dal)
     val customerService = CustomerService(dal = dal)
+    val billingService = BillingService(paymentProvider = paymentProvider, invoiceService = invoiceService)
 
     // Create REST web service
-    AntaeusRest(
-        invoiceService = invoiceService,
-        customerService = customerService,
-        paymentProvider = paymentProvider
-    ).run()
+    AntaeusRest(invoiceService = invoiceService, customerService = customerService, billingService = billingService).run()
 }
 

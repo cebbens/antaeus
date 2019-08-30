@@ -11,7 +11,7 @@ const val junitVersion = "5.5.1"
 fun Project.kotlinProject() {
     dependencies {
         // Kotlin libs
-        "implementation"(kotlin("stdlib-jdk8"))
+        "implementation"(kotlin("stdlib-jdk8", "1.3.50"))
 
         // Logging
         "implementation"("org.slf4j:slf4j-simple:1.7.28")

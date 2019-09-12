@@ -18,7 +18,7 @@ Please let us know how long the challenge takes you. We're not looking for how s
 
 Given that a billing process could change when and how it executes, it was designed to support both.
 
-The _when_ part was designed to be configurable through a new API endpoint (`/billing`) which takes appropiate parameters to configure it.
+The _when_ part was designed to be configurable through a new API endpoint (`/billing`) which takes appropriate parameters to configure it.
 
 The _how_ part was designed to support different implementations which can be easily hooked through a billing strategy, and configured on the new API endpoint.
 
@@ -55,9 +55,9 @@ This is the default implementation if none is specified.
 ###### Usage
 
 * `POST /rest/v1/billing?strategy=scheduled&cron={cron_exp}`
-* `POST /rest/v1/billing?strategy=scheduled`    ->  CRON expressionn defaults to `0 0 0 1 * ?`
+* `POST /rest/v1/billing?strategy=scheduled`    ->  CRON expression defaults to `0 0 0 1 * ?`
 * `POST /rest/v1/billing?cron={cron_exp}`       ->  Strategy defaults to `scheduled`
-* `POST /rest/v1/billing`                       ->  Strategy defaults to `scheduled` and CRON expressionn defaults to `0 0 0 1 * ?`
+* `POST /rest/v1/billing`                       ->  Strategy defaults to `scheduled` and CRON expression defaults to `0 0 0 1 * ?`
 
 ##### Simple
 
@@ -76,7 +76,7 @@ It consist of three simple steps:
 
 ### Payment Provider
 
-`MockecPaymentProvider` was created as a mocked implementation of `PaymentProvider` to represent a third-party external service that one can pretend to run on another system.
+`MockedPaymentProvider` was created as a mocked implementation of `PaymentProvider` to represent a third-party external service that one can pretend to run on another system.
 
 It only function is to charge a customer's account the amount from the passed invoice.
 
@@ -95,7 +95,7 @@ Unit tests were added for `MockedPaymentProvider` and `InvoiceService`.
 
 ### Miscellaneous
 
-All libraries where updated to its latest versions, including Javalin and Kotlin Standart. Bug fixes and enhancements are always welcome as long as they do not affect current proper and correct app functioning (which in this case it does not 😉).
+All libraries where updated to its latest versions, including Javalin and Kotlin Standard. Bug fixes and enhancements are always welcome as long as they do not affect current proper and correct app functioning (which in this case it does not 😉).
 
 ### ToDos
 
@@ -168,6 +168,6 @@ The code given is structured as follows. Feel free however to modify the structu
 * [JUnit 5](https://junit.org/junit5) - Testing framework
 * [MockK](https://mockk.io) - Mocking library
 * [SQLite 3](https://sqlite.org/index.html) - Database storage engine
-* [Quartz Scheduler](http://www.quartz-scheduler.org) - Scheduling engine.
+* [Quartz Scheduler](http://www.quartz-scheduler.org) - Scheduling engine
 
 Happy hacking 😁!
